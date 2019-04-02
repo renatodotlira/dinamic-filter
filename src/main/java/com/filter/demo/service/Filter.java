@@ -22,6 +22,7 @@ public class Filter<T>{
     protected TypedQuery<T> query;
 
     public void initialize(Class c){
+        close();
         entityManager = entityManagerFactory.createEntityManager();
         criteriaBuilder = entityManager.getCriteriaBuilder();
         criteriaQuery = criteriaBuilder.createQuery(c);
@@ -50,5 +51,12 @@ public class Filter<T>{
 
     public void setQuery(TypedQuery typedQuery) {
         this.query = typedQuery;
+    }
+
+    private void close(){
+        if (entityManager != null && entityManager.isOpen()) {
+            entityManager.clear();
+            entityManager.close();
+        }
     }
 }
