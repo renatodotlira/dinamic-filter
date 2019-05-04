@@ -15,11 +15,12 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public List<Student> findByFilter(String classe, String gender, String code, String name) {
-        FilterManager manager = new FilterManager(studentFilter);
+        FilterManager<Student> manager = new FilterManager<>(studentFilter);
         manager.addParameter("classe.name", classe);
         manager.addParameter("gender", gender);
         manager.addParameter("code", code);
         manager.addParameter("name", name);
+        manager.orderBy("code").asc();
         return manager.findByFilter();
     }
 }

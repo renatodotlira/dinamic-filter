@@ -1,29 +1,23 @@
 package com.filter.demo.service.impl;
 
 import com.filter.demo.service.GenericFilter;
+import com.filter.demo.utils.FilterManagerAbstract;
+import com.filter.demo.utils.FilterManagerOrder;
 
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class FilterManager {
+class FilterManager<T> extends FilterManagerAbstract {
 
-    private GenericFilter classFilter;
-
-    final List<Predicate> predicates = new ArrayList<>();
-
-    HashMap<ParameterExpression<String>, String> parameters = new HashMap<>();
-
-    public FilterManager(GenericFilter testGeneric){
-        testGeneric.initialize();
-        this.classFilter = testGeneric;
+    FilterManager(GenericFilter genericFilter){
+        genericFilter.initialize();
+        this.classFilter = genericFilter;
     }
 
-    List findByFilter(){
+    List<T> findByFilter(){
         classFilter.getCriteriaQuery().select(
                 classFilter.getRoot()
         ).where(
@@ -32,7 +26,7 @@ public class FilterManager {
                                 new Predicate[predicates.size()]
                         )
                 )
-        );
+        ).orderBy(orders);
         classFilter.setQuery(
                 classFilter.getEntityManager().createQuery(
                         classFilter.getCriteriaQuery()
@@ -42,7 +36,16 @@ public class FilterManager {
         return classFilter.getQuery().getResultList();
     }
 
-    public void addParameter(String field, String value){
+    FilterManagerOrder orderBy(String field){
+        path = null;
+        String[] fieldV = field.split("\\.");
+        for (String s : fieldV){
+            path = (path != null)?path.get(s):classFilter.getRoot().get(s);
+        }
+        return new FilterManagerOrder(this);
+    }
+
+    void addParameter(String field, String value){
         if(!value.equals("")){
             ParameterExpression<String> parameter = classFilter.getCriteriaBuilder().parameter(String.class);
             Predicate predicate;
@@ -56,6 +59,33 @@ public class FilterManager {
             parameters.put(parameter, value);
         }
     }
+
+    void addBoolParameter(String field, Boolean value){
+        if(value){
+            ParameterExpression<Boolean> parameter = classFilter.getCriteriaBuilder().parameter(Boolean.class);
+            Predicate predicate = classFilter.getCriteriaBuilder().equal(getFieldToCompare(field), parameter);
+            predicates.add(predicate);
+            parameters.put(parameter, true);
+        }
+    }
+
+    void addLongParameter(String field, Long value){
+        if(value>0){
+            ParameterExpression<Long> parameter = classFilter.getCriteriaBuilder().parameter(Long.class);
+            Predicate predicate = classFilter.getCriteriaBuilder().equal(getFieldToCompare(field), parameter);
+            predicates.add(predicate);
+            parameters.put(parameter, value);
+        }
+    }
+
+//    void addEnumParameter(String field, String value){
+//        if(!value.equals("")){
+//            ParameterExpression<InstructionStatusEnum> parameter = classFilter.getCriteriaBuilder().parameter(InstructionStatusEnum.class);
+//            Predicate predicate = classFilter.getCriteriaBuilder().equal(getFieldToCompare(field), parameter);
+//            predicates.add(predicate);
+//            parameters.put(parameter, InstructionStatusEnum.valueOf(value));
+//        }
+//    }
 
     private Expression<?> getFieldToCompare(String field){
         String[] fieldV = field.split("\\.");
@@ -77,8 +107,9 @@ public class FilterManager {
 
     private void setParameters(){
         for (Object o  : parameters.keySet()) {
-            ParameterExpression<String> s = (ParameterExpression<String>) o;
+            ParameterExpression<Object> s = (ParameterExpression<Object>) o;
             classFilter.getQuery().setParameter(s, parameters.get(s));
         }
     }
+
 }
