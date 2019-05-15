@@ -14,14 +14,14 @@ public class Filter<T>{
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
-    protected EntityManager entityManager;
-    protected CriteriaBuilder criteriaBuilder;
+    private EntityManager entityManager;
+    private CriteriaBuilder criteriaBuilder;
 
-    protected CriteriaQuery<T> criteriaQuery;
-    protected Root<T> root;
-    protected TypedQuery<T> query;
+    private CriteriaQuery criteriaQuery;
+    private Root root;
+    private TypedQuery query;
 
-    public void initialize(Class c){
+    protected void initialize(Class<T> c){
         close();
         entityManager = entityManagerFactory.createEntityManager();
         criteriaBuilder = entityManager.getCriteriaBuilder();

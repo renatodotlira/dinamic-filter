@@ -8,10 +8,10 @@ import javax.persistence.criteria.Root;
 
 public interface GenericFilter {
 
-    void initialize();
-
     EntityManager getEntityManager();
     CriteriaBuilder getCriteriaBuilder();
+
+    void initialize();
     CriteriaQuery getCriteriaQuery();
     Root getRoot();
     TypedQuery getQuery();
